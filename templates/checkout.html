@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Stop Shop</title>
+    <link rel="stylesheet" href="/static/style.css">  
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>  
+</head>
+<body>
+    <div class = "container bg-dark p-5 mb-4">
+        <h1 class = "text-white text-center">Check out your products here:</h1>
+    </div>
+    <div class = "container bg-dark mb-4" style="height: 50px;">
+        <h1 class = "text-white text-center">Your total is: ${{total}}</h1>
+    </div>
+    <div class="container p-0 rounded-2">
+        {%if cart%}
+            <table class="table table-dark table-striped">
+                <thead>
+                    <tr class="table-dark">
+                        <th scope="col">#</th>
+                        <th scope="col">Name of Item</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Unit Price</th>
+                        <th scope="col">Total</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    {%for product in cart%}
+                        <tr class="table-dark">
+                            <th scope="row">{{loop.index}}</th>
+                            <td>{{product["name"]}}</td>
+                            <td>{{product["quantity"]}}</td>
+                            <td>${{product["price"]}}</td>
+                            <td>${{product["quantity"] * product["price"]}}</td>
+                        </tr>
+                    {%endfor%}
+                </tbody>
+            </table>
+        {%else%}
+            <p class="text-center text-black mb-4" style="font-size: 25px;">Your cart is empty.</p>
+        {%endif%}
+    </div>
+    <form action="/" method="post">
+        <div class="d-flex justify-content-center mb-3">
+            <button type="submit" class="btn btn-danger"><u>Continue Shopping</u></button>
+        </div>
+    </form>
+    <form action="/checkout" method="post">
+        <div class="d-flex justify-content-center mb-3">
+            <button type="submit" class="btn btn-danger"><u>Checkout</u></button>
+        </div>
+    </form>
+</body>
+</html>

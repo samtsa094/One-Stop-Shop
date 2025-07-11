@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Stop Shop</title>
+    <link rel="stylesheet" href="/static/style.css">  
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>  
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-dark mb-3" data-bs-theme="dark">
+        <div class="container-fluid">
+            <a class="navbar-brand">One Stop Shop</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarText">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                </ul>
+                <span>
+                    <form class="container-fluid justify-content-start">
+                        <button type="button" class="btn btn-outline-light my-1" data-bs-toggle="modal" data-bs-target="#registerModal">Register as shop owner</button>
+                    </form>
+                </span>
+                <span>
+                    <form class="container-fluid justify-content-start">
+                        <button type="button" class="btn btn-outline-light my-1" data-bs-toggle="modal" data-bs-target="#loginModal">Login as shop owner</button>
+                    </form>
+                </span>
+                <span>
+                    <form action="/view_cart" method="post">
+                        <button type="submit" class="d-flex justify-content-center btn btn-success ms-2" style="height:39px">View Cart <font class="bg-secondary ms-2 rounded-2">{{cart_count}}</font></button>
+                    </form>
+                </span>
+            </div>
+        </div>
+    </nav>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-primary alert-dismissible fade show mx-5" role="alert">
+                    {{message}}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %} 
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header text-black">
+                    <h5 class="modal-title" id="registerModelLabel">Register Here:</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/register" method="post" id="register_form">
+                        <input type="hidden" name="form_id" value="register_form">
+                        <div class="mb-3">
+                            <input name="shop_name" type="text" class="form-control" id="shop" placeholder="Name of the shop:" required>
+                        </div>
+                        <div class="mb-3">
+                            <input name="owner_name" type="text" class="form-control" id="owner" placeholder="Name of the owner:" required>
+                        </div>
+                        <div class="mb-3">
+                            <input name="contact" type="text" class="form-control" id="phone number" placeholder="Contact/Phone Number:" required>
+                        </div>
+                        <div class="mb-3">
+                            <input name="email" type="email" class="form-control" id="email" placeholder="Email" required>
+                        </div>
+                        <div class="mb-3">
+                            <input name="password" type="password" class="form-control" id="password" placeholder="Password:" required>
+                        </div>
+                    </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Sign Up</button>
+                        </div>
+                    </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            <div class="modal-header text-black">
+                <h5 class="modal-title" id="loginModelLabel">Login Here:</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/login" method="post" id="login_form">
+                    <input type="hidden" name="form_id" value="login_form">
+                    <div class="mb-3">
+                        <input name="email" type="email" class="form-control" id="email" placeholder="Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <input name="password" type="password" class="form-control" id="password" placeholder="Password:" required>
+                    </div>
+            </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="bg-secondary mx-5 mt-4 text-white text-center" style="height: 27px; text-align: center;"><h5>Shops</h5></div>
+    {%if shops%}
+            <div class="container p-0 rounded-2">
+                <div class="row row-cols-1 row-cols-sm-1 row-cols-md-4">
+                {%for shop in shops%}
+                        <div class="card bg-light mx-3 col text-center my-4" style="height:223px;">
+                            <div class="card-header"><h5>{{shop["owner_name"]}}'s Store</h5></div>
+                            <div class="card-body">
+                                <h3 class="card-title">{{shop["shop_name"]}}</h3>
+                                <h6>Contact: {{shop["contact"]}}<h6>
+                                <p>Home Delivery Available<p>
+                                <a href="/view_shop/{{shop['email']}}" class="btn btn-primary">Visit Shop →</a>
+                            </div>
+                        </div>
+                {%endfor%}
+                </div>
+            </div>
+    {%else%}
+        <h5 class="text-center">No Shops Available</h5>
+    {%endif%}
+    <div class="bg-secondary mx-5 mb-4 text-white text-center" style="height: 27px; text-align: center;"><h5>All Products</h5></div>
+    {%if products%}
+        <div class="container rounded-2">
+            <div class="row row-cols-1 row-cols-sm-1 row-cols-md-4">
+                {%for product in products%}
+                    <div class="card bg-light col mx-3 text-center mb-4">
+                        <div class="card-header">
+                            <img src="{{product['link']}}" width="170" height="170">
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">{{product["name"]}}</h3>
+                            <font size="5">{{product["description"]}}</font>
+                            <h5 class="mt-2"><strong>Price:</strong> ${{product["price"]}}</h5>
+                            <h5><strong>Quantity:</strong> {{product["quantity"]}}</h5>
+                            <form action="/add_cart_home/{{product['_id']}}" method="post">
+                                <div class="d-flex justify-content-center">
+                                    <input name="quantity" type="text" class="form-control me-3" placeholder="Quantity:" style="width: 140px">
+                                    <button type="submit" class="btn btn-success">Add to Cart</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                {%endfor%}
+            </div>
+        </div>
+    {%else%}
+        <h5 class="text-center">No Products Available</h5>
+    {%endif%}
+    <footer class="bg-dark text-white text-center py-2">
+        <p class="mt-3">&copy; 2025 One Stop Shop. All rights reserved.</p>
+        <p>Follow us on <a href="#" class="text-warning">Twitter</a> | <a href="#" class="text-warning">Facebook</a></p>
+    </footer>
+</body>
+</html>
