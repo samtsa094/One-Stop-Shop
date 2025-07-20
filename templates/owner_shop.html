@@ -73,34 +73,36 @@
             </div>
         </div>
     </div>
-    <div class="bg-secondary mx-5 mt-3 mb-3 text-white" style="height: 27px; text-align: center;"><h5>Stock Available</h5></div>
+    <div class="bg-secondary mx-5 mb-4 text-white text-center" style="height: 27px; text-align: center;"><h5>All Products</h5></div>
     {%if products%}
-        <div class="container p-0 rounded-2">
-            <div class="row row-cols-1 row-cols-sm-1 row-cols-md-4">
+        <div class="container p-0">
+            <div class="row row-cols-md-4 justify-content-center">
                 {%for product in products%}
-                    <div class="card bg-light col mx-3 text-center mb-4">
-                        <div class="card-header text-end"><a href="/delete/{{product['_id']}}"class="btn btn-sm btn-danger"><strong>X</strong></a></div>
-                        <div class="card-header">
-                            <img src="{{product['link']}}" width="170" height="170">
-                        </div>
-                        <div class="card-body">
-                            <h3 class="card-title">{{product["name"]}}</h3>
-                            <font size="5">{{product["description"]}}</font>
-                            <h5 class="mt-2"><strong>Price:</strong> ${{product["price"]}}</h5>
-                            <h5><strong>Quantity:</strong> {{product["quantity"]}}</h5>
-                            <form action="/add_stock/{{product['_id']}}" method="post">
-                                <div class="d-flex justify-content-center">
-                                    <input name="quantity" type="text" class="form-control me-3" placeholder="Quantity:" style="width: 150px">
-                                    <button type="submit" class="btn btn-success">Add Stock</button>
-                                </div>
-                            </form>
+                    <div class="col d-flex align-items-stretch">
+                        <div class="card bg-light text-center col mb-4">
+                            <div class="card-header text-end"><a href="/delete/{{product['_id']}}"class="btn btn-sm btn-danger"><strong>X</strong></a></div>
+                            <div class="card-header">
+                                <img src="{{product['link']}}" width="170" height="170">
+                            </div>
+                            <div class="card-body">
+                                <h3 class="card-title">{{product["name"]}}</h3>
+                                <font size="5">{{product["description"]}}</font>
+                                <h5 class="mt-2"><strong>Price:</strong> ${{product["price"]}}</h5>
+                                <h5><strong>Quantity:</strong> {{product["quantity"]}}</h5>
+                                <form action="/add_stock/{{product['_id']}}" method="post">
+                                    <div class="d-flex justify-content-center">
+                                        <input name="quantity" type="text" class="form-control me-3" placeholder="Quantity:" style="width: 150px">
+                                        <button type="submit" class="btn btn-success">Add Stock</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 {%endfor%}
             </div>
         </div>
     {%else%}
-        <h5 class="text-center">No Products Added</h5>
+        <h5 class="text-center">No Products Available</h5>
     {%endif%}
 </body>
 </html>
