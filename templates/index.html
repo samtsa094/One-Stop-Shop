@@ -109,23 +109,25 @@
             </div>
         </div>
     </div>
-    <div class="bg-secondary mx-5 mt-4 text-white text-center" style="height: 27px; text-align: center;"><h5>Shops</h5></div>
+    <div class="bg-secondary mx-5 my-4 text-white text-center" style="height: 27px; text-align: center;"><h5>Shops</h5></div>
     {%if shops%}
-        <div class="container p-0 rounded-2">
-            <div style="display: flex; justify-content: center;">
-                <div class="row row-cols-1 row-cols-sm-1 row-cols-md-4">
+        <div class="container p-0">
+            <div class="row row-cols-md-4 justify-content-center">
                 {%for shop in shops%}
-                        <div class="card bg-light mx-3 col text-center my-4" style="height:223px;">
-                            <div class="card-header"><h5>{{shop["owner_name"]}}'s Store</h5></div>
+                    <div class="col mb-4 d-flex align-items-stretch">
+                        <div class="card bg-light text-center h-100 w-100">
+                            <div class="card-header">
+                                <h5>{{shop["owner_name"]}}'s Store</h5>
+                            </div>
                             <div class="card-body">
                                 <h3 class="card-title">{{shop["shop_name"]}}</h3>
-                                <h6>Contact: {{shop["contact"]}}<h6>
-                                <p>Home Delivery Available<p>
+                                <h6>Contact: {{shop["contact"]}}</h6>
+                                <p>Home Delivery Available</p>
                                 <a href="/view_shop/{{shop['email']}}" class="btn btn-primary">Visit Shop →</a>
                             </div>
                         </div>
+                    </div>
                 {%endfor%}
-                </div>
             </div>
         </div>
     {%else%}
@@ -133,11 +135,11 @@
     {%endif%}
     <div class="bg-secondary mx-5 mb-4 text-white text-center" style="height: 27px; text-align: center;"><h5>All Products</h5></div>
     {%if products%}
-        <div style="display: flex; justify-content: center;">
-            <div class="container rounded-2">
-                <div class="row row-cols-1 row-cols-sm-1 row-cols-md-4">
-                    {%for product in products%}
-                        <div class="card bg-light col mx-3 text-center mb-4">
+        <div class="container p-0">
+            <div class="row row-cols-md-4 justify-content-center">
+                {%for product in products%}
+                    <div class="col d-flex align-items-stretch">
+                        <div class="card bg-light text-center col mb-4">
                             <div class="card-header">
                                 <img src="{{product['link']}}" width="170" height="170">
                             </div>
@@ -154,8 +156,8 @@
                                 </form>
                             </div>
                         </div>
-                    {%endfor%}
-                </div>
+                    </div>
+                {%endfor%}
             </div>
         </div>
     {%else%}
