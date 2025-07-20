@@ -43,15 +43,15 @@
             <p class="text-center text-black mb-4" style="font-size: 25px;">Your cart is empty.</p>
         {%endif%}
     </div>
-    <form action="/" method="post">
-        <div class="d-flex justify-content-center mb-3">
-            <button type="submit" class="btn btn-danger"><u>Continue Shopping</u></button>
+    <div class="container mb-4">
+        <div class="d-flex justify-content-between">
+            <form action="/" method="post" class="m-0">
+                <button type="submit" class="btn btn-danger"><u>Continue Shopping</u></button>
+            </form>
+            <form action="/checkout" method="post" class="m-0">
+                <button type="submit" class="btn btn-danger"><u>Checkout</u></button>
+            </form>
         </div>
-    </form>
-    <form action="/checkout" method="post">
-        <div class="d-flex justify-content-center mb-3">
-            <button type="submit" class="btn btn-danger"><u>Checkout</u></button>
-        </div>
-    </form>
+    </div>
 </body>
 </html>
