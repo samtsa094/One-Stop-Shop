@@ -24,8 +24,8 @@
                 <form action="/logout" method="post" class="d-inline">
                     <button type="submit" class="btn btn-danger">Logout</button>
                 </form>
-                <form action="/delete_shop" method="post" class="d-inline ms-2" onsubmit="return confirm('Are you sure you want to delete your shop? This action cannot be undone.');">
-                    <button type="submit" class="btn btn-warning">Delete Shop</button>
+                <form action="/delete_shop/{{email}}" method="post" class="d-inline ms-2" onsubmit="return confirm('Are you sure you want to delete your shop? This action cannot be undone.');">
+                    <button type="submit" class="btn btn-danger">Delete Shop</button>
                 </form>
             </span>
         </div>
