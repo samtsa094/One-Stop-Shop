@@ -1,133 +1,171 @@
-import os
-from flask import Flask, render_template, request, redirect, flash, session
-from flask_pymongo import PyMongo
-from bson.objectid import ObjectId
-from passlib.hash import sha256_crypt
-app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb+srv://vaivai:1RJJ1JifgOc8VCos@cluster0.ualrt.mongodb.net/One-Stop-Shop"
-app.config["SECRET_KEY"] = "safe^&*hdgahksdg"
-mongo = PyMongo(app)
-@app.route("/", methods = ["GET", "POST"])
-def index():
-    if "user_id" not in session:
-        session["user_id"] = str(mongo.db.Carts.insert_one({"cart": []}).inserted_id)
-    cart_count = len(mongo.db.Carts.find_one({"_id": ObjectId(session["user_id"])})["cart"])
-    shops = list(mongo.db.Shops.find())
-    products = list(mongo.db.Products.find())
-    return render_template("index.html", shops = shops, products = products, cart_count = cart_count)
-@app.route("/register", methods = ["GET", "POST"])
-def register():
-    flash("Successfully registered a shop")
-    form_id = request.form.get("form_id")
-    if form_id == "register_form":
-        document = {}
-        document["email"] = request.form.get("email")
-        document["password"] = sha256_crypt.hash(request.form.get("password"))
-        document["owner_name"] = request.form.get("owner_name")
-        document["shop_name"] = request.form.get("shop_name")
-        document["contact"] = request.form.get("contact")
-        mongo.db.Shops.insert_one(document)
-        return redirect("/")
-@app.route("/owner_shop", methods = ["GET", "POST"])
-def owner_shop():
-    if "email" not in session:
-        flash("You must first login")
-        return redirect("/")
-    products = list(mongo.db.Products.find({"email": session["email"]}))
-    return render_template("owner_shop.html", products = products, name = session["name"])
-@app.route("/login", methods = ["GET", "POST"])
-def login():
-    shops = mongo.db.Shops.find()
-    for shop in shops:
-        form_id = request.form.get("form_id")
-        if form_id == "login_form":
-            if request.form.get("email") == shop["email"]:
-                password = shop["password"]
-                email = shop["email"]
-                if sha256_crypt.verify(request.form.get("password"), password):
-                    session["email"] = email
-                    session["name"] = shop["owner_name"]
-                    flash("Login successful")
-                    return redirect("/owner_shop")
-                else:
-                    flash("Password is incorrect")
-                    return redirect("/")
-    flash("Please register as a shop owner")
-    return redirect("/")
-@app.route("/logout", methods = ["GET", "POST"])
-def logout():
-    session.clear()
-    flash("Logout successful")
-    return redirect("/")
-@app.route("/add_product", methods = ["GET", "POST"])
-def add_product():
-    flash("Product added successfully")
-    form_id = request.form.get("form_id")
-    if form_id == "add_product_form":
-        document = {}
-        document["name"] = request.form.get("name")
-        document["description"] = request.form.get("description")
-        document["price"] = int(request.form.get("price"))
-        document["quantity"] = int(request.form.get("quantity"))
-        document["link"] = request.form.get("link")
-        document["email"] = session["email"]
-        mongo.db.Products.insert_one(document)
-        return redirect("/owner_shop")
-@app.route("/add_stock/<id>", methods = ["GET", "POST"])
-def add_stock(id):
-    product = mongo.db.Products.find_one({"_id": ObjectId(id)})
-    flash(f"{request.form.get('quantity')} {product['name']}(s) added to stock")
-    mongo.db.Products.update_one({"_id": ObjectId(id)}, {"$inc": {"quantity": int(request.form.get("quantity"))}})
-    return redirect("/owner_shop")
-@app.route("/delete/<id>")
-def delete(id):
-    flash("Successfully deleted the product")
-    mongo.db.Products.delete_one({"_id": ObjectId(id)})
-    return redirect("/owner_shop")
-@app.route("/view_shop/<email>", methods = ["GET", "POST"])
-def view_shop(email):
-    flash("Successfully entered the shop")
-    if request.method == "GET":
-        products = list(mongo.db.Products.find({"email": email}))
-        cart_count = len(mongo.db.Carts.find_one({"_id": ObjectId(session["user_id"])})["cart"])
-        return render_template("customer_shop.html", products = products, cart_count = cart_count, email = email)
-@app.route("/add_cart_home/<id>", methods = ["GET", "POST"])
-def add_cart_home(id):
-    mongo.db.Products.update_one({"_id": ObjectId(id)}, {"$inc": {"quantity": -1 * int(request.form.get("quantity"))}})
-    product = mongo.db.Products.find_one({"_id": ObjectId(id)})
-    flash(f"Successfully added {request.form.get('quantity')} {product['name']}(s) to your cart")
-    product_to_add = {}
-    product_to_add["name"] = product["name"]
-    product_to_add["quantity"] = int(request.form.get("quantity"))
-    product_to_add["price"] = product["price"]
-    mongo.db.Carts.update_one({"_id": ObjectId(session["user_id"])}, {"$addToSet": {"cart": product_to_add}})
-    return redirect("/")
-@app.route("/add_cart_shop/<id>/<email>", methods = ["GET", "POST"])
-def add_cart_shop(id, email):
-    mongo.db.Products.update_one({"_id": ObjectId(id)}, {"$inc": {"quantity": -1 * int(request.form.get("quantity"))}})
-    product = mongo.db.Products.find_one({"_id": ObjectId(id)})
-    flash(f"Successfully added {request.form.get('quantity')} {product['name']}(s) to your cart")
-    product_to_add = {}
-    product_to_add["name"] = product["name"]
-    product_to_add["quantity"] = int(request.form.get("quantity"))
-    product_to_add["price"] = product["price"]
-    mongo.db.Carts.update_one({"_id": ObjectId(session["user_id"])}, {"$addToSet": {"cart": product_to_add}})
-    return redirect(f"/view_shop/{email}")
-@app.route("/view_cart", methods = ["GET", "POST"])
-def view_cart():
-    cart = list(mongo.db.Carts.find_one({"_id": ObjectId(session["user_id"])})["cart"])
-    total = 0
-    for i in cart:
-        total += (i["quantity"] * i["price"])
-    return render_template("checkout.html", cart = cart, total = total)
-@app.route("/checkout", methods = ["GET", "POST"])
-def checkout():
-    session.pop("user_id")
-    return redirect("/")
-@app.route("/delete_shop/<email>", methods = ["GET", "POST"])
-def delete_shop(email):
-    flash("Successfully deleted the shop")
-    mongo.db.Products.delete_one({"email": email})
-    return redirect("/")
-if __name__ == "__main__":
-    app.run(debug = True)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Stop Shop</title>
+    <link rel="stylesheet" href="/static/style.css">  
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>  
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-dark mb-3" data-bs-theme="dark">
+        <div class="container-fluid">
+            <a class="navbar-brand">One Stop Shop</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarText">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                </ul>
+                <span>
+                    <form class="container-fluid justify-content-start">
+                        <button type="button" class="btn btn-outline-light my-1" data-bs-toggle="modal" data-bs-target="#registerModal">Register as shop owner</button>
+                    </form>
+                </span>
+                <span>
+                    <form class="container-fluid justify-content-start">
+                        <button type="button" class="btn btn-outline-light my-1" data-bs-toggle="modal" data-bs-target="#loginModal">Login as shop owner</button>
+                    </form>
+                </span>
+                <span>
+                    <form action="/view_cart" method="post">
+                        <button type="submit" class="d-flex justify-content-center btn btn-success ms-2" style="height:39px">View Cart <font class="bg-secondary ms-2 rounded-2">{{cart_count}}</font></button>
+                    </form>
+                </span>
+            </div>
+        </div>
+    </nav>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-primary alert-dismissible fade show mx-5" role="alert">
+                    {{message}}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %} 
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header text-black">
+                    <h5 class="modal-title" id="registerModelLabel">Register Here:</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/register" method="post" id="register_form">
+                        <input type="hidden" name="form_id" value="register_form">
+                        <div class="mb-3">
+                            <input name="shop_name" type="text" class="form-control" id="shop" placeholder="Name of the shop:" required>
+                        </div>
+                        <div class="mb-3">
+                            <input name="owner_name" type="text" class="form-control" id="owner" placeholder="Name of the owner:" required>
+                        </div>
+                        <div class="mb-3">
+                            <input name="contact" type="text" class="form-control" id="phone number" placeholder="Contact/Phone Number:" required>
+                        </div>
+                        <div class="mb-3">
+                            <input name="email" type="email" class="form-control" id="email" placeholder="Email" required>
+                        </div>
+                        <div class="mb-3">
+                            <input name="password" type="password" class="form-control" id="password" placeholder="Password:" required>
+                        </div>
+                    </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Sign Up</button>
+                        </div>
+                    </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            <div class="modal-header text-black">
+                <h5 class="modal-title" id="loginModelLabel">Login Here:</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/login" method="post" id="login_form">
+                    <input type="hidden" name="form_id" value="login_form">
+                    <div class="mb-3">
+                        <input name="email" type="email" class="form-control" id="email" placeholder="Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <input name="password" type="password" class="form-control" id="password" placeholder="Password:" required>
+                    </div>
+            </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="bg-secondary mx-5 my-4 text-white text-center" style="height: 27px; text-align: center;"><h5>Shops</h5></div>
+    {%if shops%}
+        <div class="container p-0">
+            <div class="row row-cols-md-4 justify-content-center">
+                {%for shop in shops%}
+                    <div class="col mb-4 d-flex align-items-stretch">
+                        <div class="card bg-light text-center h-100 w-100">
+                            <div class="card-header">
+                                <h5>{{shop["owner_name"]}}'s Store</h5>
+                            </div>
+                            <div class="card-body">
+                                <h3 class="card-title">{{shop["shop_name"]}}</h3>
+                                <h6>Contact: {{shop["contact"]}}</h6>
+                                <p>Home Delivery Available</p>
+                                <a href="/view_shop/{{shop['email']}}" class="btn btn-primary">Visit Shop →</a>
+                            </div>
+                        </div>
+                    </div>
+                {%endfor%}
+            </div>
+        </div>
+    {%else%}
+        <h5 class="text-center">No Shops Available</h5>
+    {%endif%}
+    <div class="bg-secondary mx-5 mb-4 text-white text-center" style="height: 27px; text-align: center;"><h5>All Products</h5></div>
+    {%if products%}
+        <div class="container p-0">
+            <div class="row row-cols-md-4 justify-content-center">
+                {%for product in products%}
+                    <div class="col d-flex align-items-stretch">
+                        <div class="card bg-light text-center col mb-4">
+                            <div class="card-header">
+                                <img src="{{product['link']}}" width="170" height="170">
+                            </div>
+                            <div class="card-body">
+                                <h3 class="card-title">{{product["name"]}}</h3>
+                                <font size="5">{{product["description"]}}</font>
+                                <h5 class="mt-2"><strong>Price:</strong> ${{product["price"]}}</h5>
+                                <h5><strong>Quantity:</strong> {{product["quantity"]}}</h5>
+                                <form action="/add_cart_home/{{product['_id']}}" method="post">
+                                    <div class="d-flex justify-content-center">
+                                        <input name="quantity" type="text" class="form-control me-3" placeholder="Quantity:" style="width: 140px">
+                                        <button type="submit" class="btn btn-success">Add to Cart</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {%endfor%}
+            </div>
+        </div>
+    {%else%}
+        <h5 class="text-center">No Products Available</h5>
+    {%endif%}
+    <footer class="bg-dark text-white text-center py-2">
+        <p class="mt-3">&copy; 2025 One Stop Shop. All rights reserved.</p>
+        <p>Follow us on <a href="#" class="text-warning">Twitter</a> | <a href="#" class="text-warning">Facebook</a></p>
+    </footer>
+</body>
+</html>
