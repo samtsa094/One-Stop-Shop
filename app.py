@@ -124,5 +124,10 @@ def view_cart():
 def checkout():
     session.pop("user_id")
     return redirect("/")
+@app.route("/delete_shop/<email>", methods = ["GET", "POST"])
+def delete_shop(email):
+    flash("Successfully deleted the shop")
+    mongo.db.Products.delete_one({"email": email})
+    return redirect("/")
 if __name__ == "__main__":
     app.run(debug = True)
