@@ -8,7 +8,7 @@ load_dotenv()
 app = Flask(__name__)
 app.config["MONGO_URI"] = os.getenv("MONGOURI", "mongodb://localhost:27017/one_stop_shop")
 app.config["SECRET_KEY"] = os.getenv("SECRETKEY") or os.urandom(32)
-mongo = PyMongo(app)
+mongo = PyMongo(app, uri=app.config["MONGO_URI"])
 @app.route("/", methods = ["GET"])
 def index():
     if "user_id" not in session:
