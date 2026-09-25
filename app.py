@@ -129,5 +129,5 @@ def delete_shop(email):
     flash("Successfully deleted the shop")
     mongo.db.Products.delete_one({"email": email})
     return redirect("/")
-if __name__ == "__main__":
-    app.run(debug = True)
+# if __name__ == "__main__":
+#     app.run(debug = True)
