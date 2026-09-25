@@ -8,7 +8,7 @@ load_dotenv()
 app = Flask(__name__)
 app.config["MONGO_URI"] = os.getenv("MONGOURI", "mongodb://localhost:27017/one_stop_shop")
 app.config["SECRET_KEY"] = os.getenv("SECRETKEY") or os.urandom(32)
-mongo = PyMongo(app, uri=app.config["MONGO_URI"])
+mongo = PyMongo(app, uri = app.config["MONGO_URI"])
 @app.route("/", methods = ["GET"])
 def index():
     if "user_id" not in session:
@@ -16,7 +16,7 @@ def index():
     cart_count = len(mongo.db.Carts.find_one({"_id": ObjectId(session["user_id"])})["cart"])
     shops = list(mongo.db.Shops.find())
     products = list(mongo.db.Products.find())
-    return render_template("index.html", shops=shops, products=products, cart_count=cart_count)
+    return render_template("index.html", shops = shops, products = products, cart_count = cart_count)
 @app.route("/register", methods = ["POST"])
 def register():
     if mongo.db.Shops.find_one({"email": request.form.get("email")}):
@@ -38,7 +38,7 @@ def owner_shop():
         flash("You must first login")
         return redirect("/")
     products = list(mongo.db.Products.find({"email": session["email"]}))
-    return render_template("owner_shop.html", products=products, name=session["name"])
+    return render_template("owner_shop.html", products = products, name = session["name"])
 @app.route("/login", methods = ["POST"])
 def login():
     shops = mongo.db.Shops.find()
@@ -90,7 +90,7 @@ def view_shop(email):
     flash("Successfully entered the shop")
     products = list(mongo.db.Products.find({"email": email}))
     cart_count = len(mongo.db.Carts.find_one({"_id": ObjectId(session["user_id"])})["cart"])
-    return render_template("customer_shop.html", products=products, cart_count=cart_count, email=email)
+    return render_template("customer_shop.html", products = products, cart_count = cart_count, email = email)
 @app.route("/add_cart_home/<id>", methods = ["POST"])
 def add_cart_home(id):
     mongo.db.Products.update_one({"_id": ObjectId(id)}, {"$inc": {"quantity": -1 * int(request.form.get("quantity"))}})
@@ -119,7 +119,7 @@ def add_cart_shop(id, email):
 def view_cart():
     cart = list(mongo.db.Carts.find_one({"_id": ObjectId(session["user_id"])})["cart"])
     total = sum(i["quantity"] * i["price"] for i in cart)
-    return render_template("checkout.html", cart=cart, total=total)
+    return render_template("checkout.html", cart = cart, total = total)
 @app.route("/checkout", methods = ["POST"])
 def checkout():
     session.pop("user_id")
@@ -129,5 +129,5 @@ def delete_shop(email):
     flash("Successfully deleted the shop")
     mongo.db.Products.delete_one({"email": email})
     return redirect("/")
-# if __name__ == "__main__":
+# if __name__  =  =  "__main__":
 #     app.run(debug = True)
